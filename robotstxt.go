@@ -19,23 +19,23 @@ import (
 
 type RobotsData struct {
 	// private
-	groups      map[string]*Group
-	allowAll    bool
-	disallowAll bool
+	AllowAll    bool
+	DisallowAll bool
+	Groups      map[string]*Group
 	Host        string
 	Sitemaps    []string
 }
 
 type Group struct {
-	rules      []*rule
+	Rules      []*Rule
 	Agent      string
 	CrawlDelay time.Duration
 }
 
-type rule struct {
-	path    string
-	allow   bool
-	pattern *regexp.Regexp
+type Rule struct {
+	Path    string
+	Allow   bool
+	Pattern *regexp.Regexp
 }
 
 type ParseError struct {
@@ -56,8 +56,8 @@ func (e ParseError) Error() string {
 	return b.String()
 }
 
-var allowAll = &RobotsData{allowAll: true}
-var disallowAll = &RobotsData{disallowAll: true}
+var allowAll = &RobotsData{AllowAll: true}
+var disallowAll = &RobotsData{DisallowAll: true}
 var emptyGroup = &Group{}
 
 func FromStatusAndBytes(statusCode int, body []byte) (*RobotsData, error) {
@@ -121,7 +121,7 @@ func FromBytes(body []byte) (r *RobotsData, err error) {
 
 	r = &RobotsData{}
 	parser := newParser(tokens)
-	r.groups, r.Host, r.Sitemaps, errs = parser.parseAll()
+	r.Groups, r.Host, r.Sitemaps, errs = parser.parseAll()
 	if len(errs) > 0 {
 		return nil, newParseError(errs)
 	}
@@ -134,10 +134,10 @@ func FromString(body string) (r *RobotsData, err error) {
 }
 
 func (r *RobotsData) TestAgent(path, agent string) bool {
-	if r.allowAll {
+	if r.AllowAll {
 		return true
 	}
-	if r.disallowAll {
+	if r.DisallowAll {
 		return false
 	}
 
@@ -159,11 +159,11 @@ func (r *RobotsData) FindGroup(agent string) (ret *Group) {
 	var prefixLen int
 
 	agent = strings.ToLower(agent)
-	if ret = r.groups["*"]; ret != nil {
+	if ret = r.Groups["*"]; ret != nil {
 		// Weakest match possible
 		prefixLen = 1
 	}
-	for a, g := range r.groups {
+	for a, g := range r.Groups {
 		if a != "*" && strings.HasPrefix(agent, a) {
 			if l := len(a); l > prefixLen {
 				prefixLen = l
@@ -180,7 +180,7 @@ func (r *RobotsData) FindGroup(agent string) (ret *Group) {
 
 func (g *Group) Test(path string) bool {
 	if r := g.findRule(path); r != nil {
-		return r.allow
+		return r.Allow
 	}
 
 	// From Google's spec:
@@ -198,26 +198,26 @@ func (g *Group) Test(path string) bool {
 // the most specific rule based on the length of the [path] entry will trump
 // the less specific (shorter) rule. The order of precedence for rules with
 // wildcards is undefined.
-func (g *Group) findRule(path string) (ret *rule) {
+func (g *Group) findRule(path string) (ret *Rule) {
 	var prefixLen int
 
-	for _, r := range g.rules {
-		if r.pattern != nil {
-			if r.pattern.MatchString(path) {
+	for _, r := range g.Rules {
+		if r.Pattern != nil {
+			if r.Pattern.MatchString(path) {
 				// Consider this a match equal to the length of the pattern.
 				// From Google's spec:
 				// The order of precedence for rules with wildcards is undefined.
-				if l := len(r.pattern.String()); l > prefixLen {
-					prefixLen = len(r.pattern.String())
+				if l := len(r.Pattern.String()); l > prefixLen {
+					prefixLen = len(r.Pattern.String())
 					ret = r
 				}
 			}
-		} else if r.path == "/" && prefixLen == 0 {
+		} else if r.Path == "/" && prefixLen == 0 {
 			// Weakest match possible
 			prefixLen = 1
 			ret = r
-		} else if strings.HasPrefix(path, r.path) {
-			if l := len(r.path); l > prefixLen {
+		} else if strings.HasPrefix(path, r.Path) {
+			if l := len(r.Path); l > prefixLen {
 				prefixLen = l
 				ret = r
 			}

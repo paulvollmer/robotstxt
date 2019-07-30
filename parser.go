@@ -89,13 +89,13 @@ func (p *parser) parseAll() (groups map[string]*Group, host string, sitemaps []s
 					errs = append(errs, fmt.Errorf("Disallow before User-agent at token #%d.", p.pos))
 				} else {
 					isEmptyGroup = false
-					var r *rule
+					var r *Rule
 					if li.vr != nil {
-						r = &rule{"", false, li.vr}
+						r = &Rule{"", false, li.vr}
 					} else {
-						r = &rule{li.vs, false, nil}
+						r = &Rule{li.vs, false, nil}
 					}
-					parseGroupMap(groups, agents, func(g *Group) { g.rules = append(g.rules, r) })
+					parseGroupMap(groups, agents, func(g *Group) { g.Rules = append(g.Rules, r) })
 				}
 
 			case lAllow:
@@ -104,13 +104,13 @@ func (p *parser) parseAll() (groups map[string]*Group, host string, sitemaps []s
 					errs = append(errs, fmt.Errorf("Allow before User-agent at token #%d.", p.pos))
 				} else {
 					isEmptyGroup = false
-					var r *rule
+					var r *Rule
 					if li.vr != nil {
-						r = &rule{"", true, li.vr}
+						r = &Rule{"", true, li.vr}
 					} else {
-						r = &rule{li.vs, true, nil}
+						r = &Rule{li.vs, true, nil}
 					}
-					parseGroupMap(groups, agents, func(g *Group) { g.rules = append(g.rules, r) })
+					parseGroupMap(groups, agents, func(g *Group) { g.Rules = append(g.Rules, r) })
 				}
 
 			case lHost:

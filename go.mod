@@ -1,4 +1,4 @@
-module github.com/temoto/robotstxt
+module github.com/paulvollmer/robotstxt
 
 go 1.11
 

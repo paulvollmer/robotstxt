@@ -103,10 +103,10 @@ crawl-delay: 5`
 	if len(r.Sitemaps) != 1 {
 		t.Fatalf("Expected 1 sitemaps, got %d", len(r.Sitemaps))
 	}
-	if g := r.groups["b"]; g.CrawlDelay != time.Duration(3.5*float64(time.Second)) {
+	if g := r.Groups["b"]; g.CrawlDelay != time.Duration(3.5*float64(time.Second)) {
 		t.Fatalf("Expected crawl delay of 3.5 for group 2, got %v", g.CrawlDelay)
 	}
-	if g := r.groups["f"]; g.CrawlDelay != (5 * time.Second) {
+	if g := r.Groups["f"]; g.CrawlDelay != (5 * time.Second) {
 		t.Fatalf("Expected crawl delay of 5 for group 3, got %v", g.CrawlDelay)
 	}
 }
@@ -117,7 +117,7 @@ Disallow: /path*l$`
 
 	r, err := FromString(robotsCaseWildcards)
 	require.NoError(t, err)
-	assert.Equal(t, "/path.*l$", r.groups["*"].rules[0].pattern.String())
+	assert.Equal(t, "/path.*l$", r.Groups["*"].Rules[0].Pattern.String())
 }
 
 func TestURLMatching(t *testing.T) {
